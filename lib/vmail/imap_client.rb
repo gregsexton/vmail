@@ -22,10 +22,16 @@ module Vmail
       @signature = config['signature']
       @always_cc = config['always_cc']
       @mailbox = nil
+
+      # Total hack, but ENV['VMAIL_HOME'] isn't always available.
+      @vmail_home = File.dirname(config['logfile'])
+
       @logger = Logger.new(config['logfile'] || STDERR)
       @logger.level = Logger::DEBUG
+
       @imap_server = config['server'] || 'imap.gmail.com'
       @imap_port = config['port'] || 993
+
       @current_mail = nil
       @current_message_uid = nil
       @width = 140
@@ -773,7 +779,7 @@ EOF
                     @current_mail.body
                   end
       return if html_part.nil?
-      outfile = 'part.html'
+      outfile = File.join(@vmail_home, 'part.html')
       File.open(outfile, 'w') {|f| f.puts(html_part.decoded)}
       # client should handle opening the html file
       return outfile
