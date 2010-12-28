@@ -226,6 +226,7 @@ function! s:update()
   let command = s:update_command
   echo "Checking for new messages. Please wait..."
   let res = system(command)
+
   if len(split(res, "\n", '')) > 0
     setlocal modifiable
     let line = line('$')
@@ -239,7 +240,7 @@ function! s:update()
     echom "You have " . num . " new message" . (num == 1 ? '' : 's') . "!" 
   else
     redraw
-    echom "No new messages"
+    echom "No new messages."
   endif
 endfunction
 
