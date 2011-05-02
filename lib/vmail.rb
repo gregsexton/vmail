@@ -16,6 +16,12 @@ module Vmail
     end
 
     vim = ENV['VMAIL_VIM'] || 'vim'
+    vmail_home = ENV['VMAIL_HOME'] || File.join(ENV['HOME'], '.vmail')
+    buffer_file = File.expand_path(File.join(vmail_home, "vmailbuffer"))
+
+    # Create VMAIL_HOME if it doesn't exist.
+    Dir.mkdir(vmail_home, 0700) unless File.exists?(vmail_home)
+
     ENV['VMAIL_BROWSER'] ||= if RUBY_PLATFORM.downcase.include?('linux') 
                                tools = ['gnome-open', 'kfmclient-exec', 'konqueror']
                                tool = tools.detect { |tool|
@@ -39,14 +45,14 @@ module Vmail
 
     contacts_file = opts.contacts_file
 
-    logfile = (vim == 'mvim') ? STDERR : 'vmail.log'
+    logfile = (vim == 'mvim') ? STDERR : "#{vmail_home}/vmail.log"
     config.merge! 'logfile' => logfile
 
     puts "Starting vmail imap client for #{config['username']}"
 
-    drb_uri = begin 
+    drb_uri = begin
                 Vmail::ImapClient.daemon config
-              rescue 
+              rescue
                 puts "Failure:", $!
                 exit(1)
               end
@@ -60,7 +66,6 @@ module Vmail
     STDERR.puts "Mailbox: #{mailbox}"
     STDERR.puts "Query: #{query.inspect} => #{query_string}"
     
-    buffer_file = "vmailbuffer"
     # invoke vim
     vimscript = File.expand_path("../vmail.vim", __FILE__)
     vim_command = "DRB_URI=#{drb_uri} VMAIL_CONTACTS_FILE=#{contacts_file} VMAIL_MAILBOX=#{String.shellescape(mailbox)} VMAIL_QUERY=#{String.shellescape(query_string)} #{vim} -S #{vimscript} #{buffer_file}"
@@ -84,7 +89,7 @@ module Vmail
 
     STDERR.puts "Closing imap connection"  
     begin
-      Timeout::timeout(10) do 
+      Timeout::timeout(10) do
         $gmail.close
       end
     rescue Timeout::Error
@@ -166,4 +171,3 @@ module Vmail
     [mailbox, query]
   end
 end
-

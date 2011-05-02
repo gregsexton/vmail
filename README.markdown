@@ -22,7 +22,7 @@ To install Ruby 1.9.2, I recommend using the [RVM Version Manager][rvm].
 
 The current version of Vmail assumes a Unix environment. 
 
-Your Gmail account should be [IMAP-enabled][gmailimap]. 
+Your Gmail account should be [IMAP-enabled][gmailimap].
 
 [gmailimap]:http://mail.google.com/support/bin/answer.py?hl=en&answer=77695
 
@@ -38,7 +38,7 @@ Test your installation by typing `vmail -h`. You should see Vmail's help.
 
 On some systems you may run into a PATH issue, where the system can't find the
 `vmail` command after installation. Please report this if you encounter this
-problem, and mention what system you're using. You might want to try 
+problem, and mention what system you're using. You might want to try
 
     sudo gem install vmail
 
@@ -54,16 +54,19 @@ If you ever want to uninstall Vmail from your system, just execute this command:
     gem uninstall vmail
 
 ... and all traces of Vmail will removed, except the few files it creates
-during execution (see below).
+during execution, which are mostly stored in `$HOME/.vmail` (see below).
 
 ## Configuration file
 
-To run Vmail, create a yaml file called `.vmailrc` and save it either in the
-current directory (the directory from which you launch Vmail) or in your home
-directory. 
+The vmail configuration file can be located in a few different places:
 
-The `.vmailrc` file should look something like this. Substitute your own values.
+* `.vmailrc` in the current directory.
+* `$HOME/.vmail/vmailrc`
+* `$HOME/.vmailrc`
 
+The config file should be in [YAML][1] format and look something like this (substitute your own values):
+
+    ---
     username: dhchoi@gmail.com
     password: password
     name: Daniel Choi
@@ -71,13 +74,15 @@ The `.vmailrc` file should look something like this. Substitute your own values.
       --
       Sent from Vmail. http://danielchoi.com/software/vmail.html
 
-This file should be formatted in [YAML syntax][1].
-
 [1]:http://www.yaml.org/spec/1.2/spec.html
 
-You can omit the password key-value pair if you'd rather not have the password
-saved in the file. In that case, you'll prompted for the password each time you
-start Vmail.
+You can omit the password if you'd rather not have it saved in the file.
+In that case, you'll prompted for the password each time you start vmail.
+
+You can specify a custom directory to be used for all vmail files by setting the
+`VMAIL_HOME` environment variable before running vmail. The default is `$HOME/.vmail`.
+
+    VMAIL_HOME=/path/to/vmail_dir vmail
 
 You can also add an `always_cc:` key-value pair. This will pre-insert
 whatever email address you specify in the `cc:` line of any email you
@@ -85,7 +90,7 @@ start composing in Vmail.
 
 If you want to configure Vmail with multiple Gmail accounts, [here's how][multiaccount].
 
-[multiaccount]:https://github.com/danchoi/vmail/wiki/How-can-i-quickly-switch-between-multiple-accounts%3F
+[multiaccount]:https://github.com/danchoi/vmail/wiki/How-to-use-vmail-with-multiple-Gmail-accounts
 
 If you are behind a firewall that blocks IMAP, see these [additional
 configuration options][firewall] that you can use.
@@ -96,11 +101,11 @@ configuration options][firewall] that you can use.
 ## Contacts autocompletion
 
 Vmail uses Vim autocompletion to help you auto-complete email addresses.
-To use this feature, generate a `vmail-contacts.txt` file in the current or
-home directory. This is a simple list of your email contacts.
-Invoking Vmail with the `-g` option generates this file for you by
+To use this feature, generate a `vmail-contacts.txt` file in `VMAIL_HOME`
+(`$HOME/.vmail` by default). This is a simple list of your email contacts.
+Invoking vmail with the `-g` option generates this file for you by
 collecting all the recipients and cc's from your last 500 sent
-emails. You can adjust this number by using `-g` with a number argument. 
+emails. You can adjust this number by using `-g` with a number argument.
 
 After Vmail generates this file for you, you can edit it however and whenever
 you want, as long as there is one address per line.
@@ -157,7 +162,7 @@ from either window.
 You can also use the standard Vim key sequence `C-w C-w`.
 
 You can use `<C-j>` or `,j` from either split window to show the next message.
-You can use `<C-k>` or `,k` to show the previous message. 
+You can use `<C-k>` or `,k` to show the previous message.
 
 Vmail loads a certain number messages at a time, starting with the most recent.
 If there are more messages that Vmail hasn't loaded, you'll see a line at the
@@ -202,14 +207,14 @@ To save you keystrokes, Vmail provides alternative key mappings for
 * trash/delete: `,#` &rarr; `,3`
 * mark spam: `,!` &rarr; `,1`
 
-These save you from having to press the SHIFT key in each case. 
+These save you from having to press the SHIFT key in each case.
 
 ## Checking for new messages
 
 To check for new messages in the current mailbox, press `u` in normal
 mode if you're in the message list window or `,u` if you are in the
 message window. Watch the status line.
- 
+
 ## Switching mailboxes, moving messages, copying messages to another mailbox
 
 To switch mailboxes, type `,m`. You'll see an autocomplete window appear at the top.
@@ -220,7 +225,7 @@ The standard Vim autocomplete keystrokes apply:
 * `C-u`: when the match list is active, cycles forward through the match list and what you've typed so far; when the match list is inactive, erases what you've typed.
 * `C-x C-u` finds matches for what you've typed so far (when the match list window is closed)
 * `C-y` selects the highlighted match without triggering ENTER
-* ENTER selects the highlighted match from the match list 
+* ENTER selects the highlighted match from the match list
 
 Tip: start typing the first 1-3 characters of the mailbox name, then press
 `C-n`, `C-u` or `C-p` until you highlight the right match, and finally press ENTER to
@@ -240,13 +245,13 @@ create it for you before performing a move or copy.
 To start writing a new a email message, type `,c`. That's a comma followed by
 the character 'c'.
 
-To reply to a message, type `,r`. 
+To reply to a message, type `,r`.
 
-To reply-all to a message, type `,a`. 
+To reply-all to a message, type `,a`.
 
 To forward a message, type `,f`.
 
-All these commands open a message composition window. At the top, you will see 
+All these commands open a message composition window. At the top, you will see
 mail headers like this:
 
     from: Daniel Choi <dhchoi@gmail.com>
@@ -274,9 +279,9 @@ blank line between the headers and the body of your message.
 When you're done writing, send the message by typing `,vs` in normal mode.
 
 While you're composing a message in the composition window, you can save a
-draft to a local file with the standard Vim `:w` command: 
+draft to a local file with the standard Vim `:w` command:
 
-    :w my_draft_filename.txt 
+    :w my_draft_filename.txt
 
 Make sure you append *.txt to the filename, or else Vmail won't recognize it as
 a potential email when you reload it.
@@ -298,7 +303,7 @@ you've composed with correct headers and saved to a file, like so:
     vmailsend < my_message.txt
 
 vmailsend uses your `.vmailrc` configuration and assumes that you saved your
-password in it. 
+password in it.
 
 ## Attachments
 
@@ -328,14 +333,14 @@ composition window:
     from: Daniel Choi <dhchoi@gmail.com>
     to: barackobama@whitehouse.gov
     subject: look at this!
-    
+
     attach:
     - images/middle-east-map.png
     - images/policypaper.pdf
     - docs/
-    
+
     I think you'll find this stuff interesting.
-    
+
 
 The `attach:` block is a YAML list. The items are paths (either relative to the
 current directory or absolute) to the files you want to attach to your message.
@@ -372,7 +377,7 @@ before you start Vmail, e.g.:
 Also, if your Vim has `netrw` (`:help netrw`), you can open a hyperlink
 directly in same Vim window by putting the cursor at the beginning of a
 hyperlink and typing `gf`, or `C-w f` if you want to open the webpage in a
-split window. 
+split window.
 
 ## Search queries
 
@@ -383,30 +388,30 @@ followed by a valid IMAP search query.
 
 Here are some example search queries.
 
-    # the default 
-    100 all  
+    # the default
+    100 all
 
     # all messages from thematrix.com domain
-    from thematrix.com  
+    from thematrix.com
 
     # all messages from this person
-    from barackobama@whitehouse.gov  
+    from barackobama@whitehouse.gov
 
     # you can also omit the host part of the email address
     from barackobama
 
     # you can also search by the full name, first name, or last name associated
-    # with an email; use double quotes to enclose multiple words 
+    # with an email; use double quotes to enclose multiple words
     cc "David Fisher"
 
     # subject field search; use double quotes to enclose multiple words
-    subject "unix philosophy"  
+    subject "unix philosophy"
 
     # message body search; use double quotes to enclose multiple words
-    body "unix philosophy"  
+    body "unix philosophy"
 
     # example of date range and multiple conditions
-    before 30-nov-2010 since 1-nov-2010 from prx.org  
+    before 30-nov-2010 since 1-nov-2010 from prx.org
 
     # search for all messages since 1-nov-2010 larger than 10k
     # (note that queries with size conditions seem to take longer to return)
@@ -467,7 +472,7 @@ in the original terminal window to stop the Vmail process.
 
 ## Vmail file byproducts
 
-Vmail generates a few files in the current directory when it is running: 
+Vmail generates a few files in `VMAIL_HOME` when it is running:
 
 * `vmailbuffer` holds the message list. This file should get deleted automatically when Vmail quits.
 
@@ -513,7 +518,7 @@ up. In that case, just force a redraw of the Vim screen with `C-l`.
 By default, Vmail highlights starred messages in bold green against a black
 background. You can customize this setting by adding a line to your `~/.vimrc`
 (not `.vmailrc`) file like so:
-    
+
     let g:vmail_flagged_color = "ctermfg=yellow ctermbg=black cterm=bold"
 
 Type `:help highlight-args` in Vim for more details.

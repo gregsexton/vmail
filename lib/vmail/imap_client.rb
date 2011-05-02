@@ -22,10 +22,16 @@ module Vmail
       @signature = config['signature']
       @always_cc = config['always_cc']
       @mailbox = nil
+
+      # Total hack, but ENV['VMAIL_HOME'] isn't always available.
+      @vmail_home = File.dirname(config['logfile'])
+
       @logger = Logger.new(config['logfile'] || STDERR)
       @logger.level = Logger::DEBUG
+
       @imap_server = config['server'] || 'imap.gmail.com'
       @imap_port = config['port'] || 993
+
       @current_mail = nil
       @current_message_uid = nil
       @width = 140
@@ -101,7 +107,7 @@ module Vmail
     def get_highest_message_id
       # get highest message ID
       res = @imap.fetch([1,"*"], ["ENVELOPE"])
-      if res 
+      if res
         @num_messages = res[-1].seqno
         log "HIGHEST ID: #@num_messages"
       else
@@ -126,7 +132,7 @@ module Vmail
 
     def prime_connection
       return if @ids.nil? || @ids.empty?
-      reconnect_if_necessary(4) do 
+      reconnect_if_necessary(4) do
         # this is just to prime the IMAP connection
         # It's necessary for some reason before update and deliver. 
         log "Priming connection"
@@ -135,7 +141,7 @@ module Vmail
           # just go ahead, just log
           log "Priming connection didn't work, connection seems broken, but still going ahead..."
         end
-      end 
+      end
     end
 
     def list_mailboxes
@@ -198,7 +204,7 @@ module Vmail
     end
 
     def fetch_envelopes(id_set, are_uids, is_update)
-      results = reconnect_if_necessary do 
+      results = reconnect_if_necessary do
         if are_uids
           @imap.uid_fetch(id_set, ["FLAGS", "ENVELOPE", "RFC822.SIZE", "UID" ])
         else
@@ -225,7 +231,7 @@ module Vmail
       flags = fetch_data.attr["FLAGS"]
       address_struct = if @mailbox == mailbox_aliases['sent'] 
                          structs = envelope.to || envelope.cc
-                         structs.nil? ? nil : structs.first 
+                         structs.nil? ? nil : structs.first
                        else
                          envelope.from.first
                        end
@@ -234,22 +240,22 @@ module Vmail
                 elsif address_struct.name
                   "#{Mail::Encodings.unquote_and_convert_to(address_struct.name, 'UTF-8')} <#{[address_struct.mailbox, address_struct.host].join('@')}>"
                 else
-                  [Mail::Encodings.unquote_and_convert_to(address_struct.mailbox, 'UTF-8'), Mail::Encodings.unquote_and_convert_to(address_struct.host, 'UTF-8')].join('@') 
+                  [Mail::Encodings.unquote_and_convert_to(address_struct.mailbox, 'UTF-8'), Mail::Encodings.unquote_and_convert_to(address_struct.host, 'UTF-8')].join('@')
                 end
       if @mailbox == mailbox_aliases['sent'] && envelope.to && envelope.cc
         total_recips = (envelope.to + envelope.cc).size
         address += " + #{total_recips - 1}"
       end
-      date = begin 
+      date = begin
                Time.parse(envelope.date).localtime
              rescue ArgumentError
                Time.now
              end
 
       date_formatted = if date.year != Time.now.year
-                         date.strftime "%b %d %Y" rescue envelope.date.to_s 
-                       else 
-                         date.strftime "%b %d %I:%M%P" rescue envelope.date.to_s 
+                         date.strftime "%b %d %Y" rescue envelope.date.to_s
+                       else
+                         date.strftime "%b %d %I:%M%P" rescue envelope.date.to_s
                        end
       subject = envelope.subject || ''
       subject = Mail::Encodings.unquote_and_convert_to(subject, 'UTF-8')
@@ -354,9 +360,11 @@ module Vmail
     def update
       prime_connection
       old_num_messages = @num_messages
+
       # we need to re-select the mailbox to get the new highest id
       reload_mailbox
       update_query = @query.dup
+
       # set a new range filter
       # this may generate a negative rane, e.g., "19893:19992" but that seems harmless
       update_query[0] = "#{old_num_messages}:#{@num_messages}"
@@ -368,6 +376,7 @@ module Vmail
       log "- getting seqnos > #{self.max_seqno}"
       new_ids = ids.select {|seqno| seqno > self.max_seqno}
       @ids = @ids + new_ids
+
       log "- update: new uids: #{new_ids.inspect}"
       if !new_ids.empty?
         self.max_seqno = new_ids[-1]
@@ -382,7 +391,7 @@ module Vmail
     def more_messages(message_id, limit=100)
       log "More_messages: message_id #{message_id}"
       message_id = message_id.to_i
-      if @all_search 
+      if @all_search
         x = [(message_id - limit), 0].max
         y = [message_id - 1, 0].max
 
@@ -393,7 +402,7 @@ module Vmail
         x = [(@start_index - limit), 0].max
         y = [@start_index - 1, 0].max
         @start_index = x
-        res = fetch_row_text(@ids[x..y]) 
+        res = fetch_row_text(@ids[x..y])
         add_more_message_line(res, @ids[x])
       end
     end
@@ -432,7 +441,7 @@ module Vmail
       data = if x = message_cache[[@mailbox, uid]]
                log "- message cache hit"
                x
-             else 
+             else
                log "- fetching and storing to message_cache[[#{@mailbox}, #{uid}]]"
                fetch_and_cache(uid)
              end
@@ -463,7 +472,7 @@ module Vmail
           # retry one more time ( find a more elegant way to do this )
           res = @imap.uid_fetch(uid, ["FLAGS", "RFC822", "RFC822.SIZE"])
         end
-        res[0] 
+        res[0]
       end
       # USE THIS
       size = fetch_data.attr["RFC822.SIZE"]
@@ -490,7 +499,7 @@ EOF
 
     # deprecated
     def prefetch_adjacent(index)
-      Thread.new do 
+      Thread.new do
         [index + 1, index - 1].each do |idx|
           fetch_and_cache(idx)
         end
@@ -655,7 +664,7 @@ EOF
         subject = "Fwd: #{subject}"
       end
 
-      new_message_template(subject, false) + 
+      new_message_template(subject, false) +
         "\n---------- Forwarded message ----------\n" +
         original_body + signature
     end
@@ -765,7 +774,7 @@ EOF
       log "Open_html_part"
       log @current_mail.parts.inspect
       multipart = @current_mail.parts.detect {|part| part.multipart?}
-      html_part = if multipart 
+      html_part = if multipart
                     multipart.parts.detect {|part| part.header["Content-Type"].to_s =~ /text\/html/}
                   elsif ! @current_mail.parts.empty?
                     @current_mail.parts.detect {|part| part.header["Content-Type"].to_s =~ /text\/html/}
@@ -773,7 +782,7 @@ EOF
                     @current_mail.body
                   end
       return if html_part.nil?
-      outfile = 'part.html'
+      outfile = File.join(@vmail_home, 'part.html')
       File.open(outfile, 'w') {|f| f.puts(html_part.decoded)}
       # client should handle opening the html file
       return outfile
@@ -783,7 +792,7 @@ EOF
       log "Setting window width to #{width}"
       @width = width.to_i
     end
-   
+
     def smtp_settings
       [:smtp, {:address => "smtp.gmail.com",
       :port => 587,
@@ -814,7 +823,7 @@ EOF
       close
       log(revive_connection)
       # hope this isn't an endless loop
-      reconnect_if_necessary do 
+      reconnect_if_necessary do
         block.call
       end
     rescue
@@ -839,11 +848,11 @@ EOF
   end
 end
 
-trap("INT") { 
+trap("INT") {
   require 'timeout'
   puts "Closing imap connection"  
   begin
-    Timeout::timeout(10) do 
+    Timeout::timeout(10) do
       $gmail.close
     end
   rescue Timeout::Error
