@@ -1,34 +1,34 @@
 if !exists("g:vmail_flagged_color")
   let g:vmail_flagged_color = "ctermfg=green guifg=green guibg=grey"
 endif
-let s:vmail_home = $VMAIL_HOME
-let s:mailbox = $VMAIL_MAILBOX
-let s:query = $VMAIL_QUERY
+let s:vmail_home      = $VMAIL_HOME
+let s:mailbox         = $VMAIL_MAILBOX
+let s:query           = $VMAIL_QUERY
 let s:browser_command = $VMAIL_BROWSER
-let s:append_file = ''
+let s:append_file     = ''
 
 let s:drb_uri = $DRB_URI
 
-let s:client_script = "vmail_client " . shellescape(s:drb_uri) . " "
-let s:set_window_width_command = s:client_script . "window_width= "
-let s:list_mailboxes_command = s:client_script . "list_mailboxes "
-let s:show_message_command = s:client_script . "show_message "
-let s:update_command = s:client_script . "update"
-let s:fetch_headers_command = s:client_script . "fetch_headers "
-let s:select_mailbox_command = s:client_script . "select_mailbox "
-let s:search_command = s:client_script . "search "
-let s:more_messages_command = s:client_script . "more_messages "
-let s:flag_command = s:client_script . "flag "
-let s:append_to_file_command = s:client_script . "append_to_file "
-let s:move_to_command = s:client_script . "move_to "
-let s:copy_to_command = s:client_script . "copy_to "
+let s:client_script                = "vmail_client " . shellescape(s:drb_uri) . " "
+let s:set_window_width_command     = s:client_script . "window_width= "
+let s:list_mailboxes_command       = s:client_script . "list_mailboxes "
+let s:show_message_command         = s:client_script . "show_message "
+let s:update_command               = s:client_script . "update"
+let s:fetch_headers_command        = s:client_script . "fetch_headers "
+let s:select_mailbox_command       = s:client_script . "select_mailbox "
+let s:search_command               = s:client_script . "search "
+let s:more_messages_command        = s:client_script . "more_messages "
+let s:flag_command                 = s:client_script . "flag "
+let s:append_to_file_command       = s:client_script . "append_to_file "
+let s:move_to_command              = s:client_script . "move_to "
+let s:copy_to_command              = s:client_script . "copy_to "
 let s:new_message_template_command = s:client_script . "new_message_template "
-let s:reply_template_command = s:client_script . "reply_template "
-let s:forward_template_command = s:client_script . "forward_template "
-let s:deliver_command = s:client_script . "deliver "
-let s:save_attachments_command = s:client_script . "save_attachments "
-let s:open_html_part_command = s:client_script . "open_html_part "
-let s:show_help_command = s:client_script . "show_help"
+let s:reply_template_command       = s:client_script . "reply_template "
+let s:forward_template_command     = s:client_script . "forward_template "
+let s:deliver_command              = s:client_script . "deliver "
+let s:save_attachments_command     = s:client_script . "save_attachments "
+let s:open_html_part_command       = s:client_script . "open_html_part "
+let s:show_help_command            = s:client_script . "show_help"
 
 let s:message_bufname = s:vmail_home . "/current_message.txt"
 
@@ -840,9 +840,6 @@ func! s:global_mappings()
   noremap <silent> <leader>? :call <SID>show_help()<cr>
   noremap <silent> <leader>qq :qal!<cr>
 endfunc
-
-"TODO see if using LocalLeader and maplocalleader makes more sense
-let mapleader = ","
 
 call s:global_mappings()
 

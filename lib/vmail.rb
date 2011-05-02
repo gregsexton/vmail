@@ -22,7 +22,7 @@ module Vmail
     # Create VMAIL_HOME if it doesn't exist.
     Dir.mkdir(vmail_home, 0700) unless File.exists?(vmail_home)
 
-    ENV['VMAIL_BROWSER'] ||= if RUBY_PLATFORM.downcase.include?('linux') 
+    ENV['VMAIL_BROWSER'] ||= if RUBY_PLATFORM.downcase.include?('linux')
                                tools = ['gnome-open', 'kfmclient-exec', 'konqueror']
                                tool = tools.detect { |tool|
                                  `which #{tool}`.size > 0
@@ -65,7 +65,7 @@ module Vmail
 
     STDERR.puts "Mailbox: #{mailbox}"
     STDERR.puts "Query: #{query.inspect} => #{query_string}"
-    
+
     # invoke vim
     vimscript = File.expand_path("../vmail.vim", __FILE__)
     vim_command = "DRB_URI=#{drb_uri} VMAIL_CONTACTS_FILE=#{contacts_file} VMAIL_MAILBOX=#{String.shellescape(mailbox)} VMAIL_QUERY=#{String.shellescape(query_string)} #{vim} -S #{vimscript} #{buffer_file}"
@@ -76,7 +76,7 @@ module Vmail
       file.puts "- drb uri: #{drb_uri}"
       file.puts "- mailbox: #{mailbox}"
       file.puts "- query: #{query_string}\n"
-      file.puts "Fetching messages. please wait..."  
+      file.puts "Fetching messages. please wait..."
     end
 
     system(vim_command)
@@ -87,7 +87,7 @@ module Vmail
 
     File.delete(buffer_file)
 
-    STDERR.puts "Closing imap connection"  
+    STDERR.puts "Closing imap connection"
     begin
       Timeout::timeout(10) do
         $gmail.close
@@ -108,10 +108,10 @@ module Vmail
     mailbox, query = parse_query
     query_string = Vmail::Query.args2string query
     imap_client  = Vmail::ImapClient.new config
-    imap_client.with_open do |vmail| 
+    imap_client.with_open do |vmail|
       vmail.select_mailbox mailbox
       vmail.search query_string
-    end 
+    end
   end
 
   # batch processing mode
@@ -125,7 +125,7 @@ module Vmail
     lines = STDIN.readlines# .reverse
     mailbox = lines.shift.chomp
     puts "mailbox: #{mailbox}"
-    uid_set = lines.map do |line| 
+    uid_set = lines.map do |line|
       line[/(\d+)\s*$/,1].to_i
     end
     commands = {
@@ -140,7 +140,7 @@ module Vmail
       abort "Command '#{args.inspect}' not recognized"
     end
     command = args.shift
-    imap_client.with_open do |vmail| 
+    imap_client.with_open do |vmail|
       puts "Selecting mailbox: #{mailbox}"
       vmail.select_mailbox mailbox
       uid_set.each_slice(5) do |uid_set|
@@ -162,10 +162,10 @@ module Vmail
   end
 
   def parse_query
-    mailbox = if ARGV[0] =~ /^\d+/ 
+    mailbox = if ARGV[0] =~ /^\d+/
                 "INBOX"
-              else 
-                ARGV.shift || 'INBOX' 
+              else
+                ARGV.shift || 'INBOX'
               end
     query = Vmail::Query.parse(ARGV)
     [mailbox, query]
