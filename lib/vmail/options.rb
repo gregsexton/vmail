@@ -12,6 +12,7 @@ module Vmail
 
     attr_accessor :config
     attr_accessor :contacts_file
+    attr_accessor :fork_daemon
 
     def initialize(argv)
       config_file_locations = ['.vmailrc', DEFAULT_CONFIG_FILE, "#{ENV['HOME']}/.vmailrc"]
@@ -45,6 +46,10 @@ module Vmail
         opts.on("-g", "--get-contacts [count]", Integer, "Generate contacts file. 'count' is the number of emails to scan for contacts (default: #{DEFAULT_MAX_MESSAGES}).") do |count|
           @get_contacts = true
           @max_messages_to_scan = count || DEFAULT_MAX_MESSAGES
+        end
+
+        opts.on("--fork", "Used to start Vmail from within Vim. This should only be used by the Vim Vmail script.") do
+          @fork_daemon = true
         end
 
         opts.on("-v", "--version", "Show version.") do
