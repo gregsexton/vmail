@@ -754,7 +754,7 @@ endfunc
 " MAPPINGS
 
 func! s:message_window_mappings()
-  noremap <silent> <buffer> <cr> <C-W>=:call <SID>focus_list_window()<CR>
+  "noremap <silent> <buffer> <cr> <C-W>=:call <SID>focus_list_window()<CR>
   noremap <silent> <buffer> <Leader>r :call <SID>compose_reply(0)<CR>
   noremap <silent> <buffer> <Leader>a :call <SID>compose_reply(1)<CR>
   noremap <silent> <buffer> <Leader>R :call <SID>show_raw()<cr>
@@ -794,7 +794,7 @@ endfunc
 
 func! s:message_list_window_mappings()
   noremap <silent> <buffer> <cr> :call <SID>show_message(0)<CR>
-  noremap <silent> <buffer> <LeftMouse> :call <SID>show_message(0)<CR>
+  "noremap <silent> <buffer> <LeftMouse> :call <SID>show_message(0)<CR>
   nnoremap <silent> <buffer> l :call <SID>show_message(1)<CR>
   "noremap <silent> <buffer> q :qal!<cr>
   "nmap <silent> <buffer> <leader>q q
