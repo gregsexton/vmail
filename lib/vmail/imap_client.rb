@@ -99,12 +99,12 @@ module Vmail
     end
 
     def reload_mailbox
-      return unless STDIN.tty?
+      return unless STDIN.tty? or @forked
       select_mailbox(@mailbox, true)
     end
 
     def clear_cached_message
-      return unless STDIN.tty?
+      return unless STDIN.tty? or @forked
       log "CLEARING CACHED MESSAGE"
       @current_mail = nil
       @current_message_uid = nil
@@ -359,7 +359,7 @@ module Vmail
     end
 
     def decrement_max_seqno(num)
-      return unless STDIN.tty?
+      return unless STDIN.tty? or @forked
       log "Decremented max seqno from #{self.max_seqno} to #{self.max_seqno - num}"
       self.max_seqno -= num
     end
@@ -594,7 +594,7 @@ EOF
     end
 
     def spawn_thread_if_tty(&block)
-      if STDIN.tty?
+      if STDIN.tty? or @forked
         Thread.new do
           reconnect_if_necessary(10, &block)
         end
