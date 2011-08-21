@@ -75,7 +75,7 @@ module Vmail
 
     def close_and_exit
         close()
-        exit(0)
+        Process.exit!
     end
 
     def select_mailbox(mailbox, force=false)
