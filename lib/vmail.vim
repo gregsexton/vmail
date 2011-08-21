@@ -767,7 +767,7 @@ func! s:message_window_mappings()
   noremap <silent> <buffer> <Leader>c :call <SID>compose_message()<CR>
   noremap <silent> <buffer> <Leader>h :call <SID>open_html_part()<CR><cr>
   nnoremap <silent> <buffer> q :call <SID>close_message_window()<cr> 
-  nmap <silent> <buffer> <leader>q q
+  "nmap <silent> <buffer> <leader>q q
 
   nnoremap <silent> <buffer> <leader>#  :close<cr>:call <SID>focus_list_window()<cr>:call <SID>delete_messages("Deleted")<cr>
   nnoremap <silent> <buffer> <leader>*  :call <SID>focus_list_window()<cr>:call <SID>toggle_star()<cr>
@@ -786,18 +786,18 @@ func! s:message_window_mappings()
 
   nnoremap <silent> <buffer> <Leader>m :call <SID>focus_list_window()<cr>:call <SID>mailbox_window()<CR>
   nnoremap <silent> <buffer> <Leader>A :call <SID>save_attachments()<cr>
-  nnoremap <silent> <buffer> <Space> :call <SID>toggle_maximize_window()<cr>
   noremap <silent> <buffer> <leader>vp :call <SID>focus_list_window()<cr>:call <SID>append_messages_to_file()<CR>
   nnoremap <silent> <buffer> <Leader>s :call <SID>focus_list_window()<cr>:call <SID>search_query()<cr>
 
+  nnoremap <silent> <buffer> <c-cr> :call <SID>open_href(0)<cr>
 endfunc
 
 func! s:message_list_window_mappings()
   noremap <silent> <buffer> <cr> :call <SID>show_message(0)<CR>
   noremap <silent> <buffer> <LeftMouse> :call <SID>show_message(0)<CR>
   nnoremap <silent> <buffer> l :call <SID>show_message(1)<CR>
-  noremap <silent> <buffer> q :qal!<cr>
-  nmap <silent> <buffer> <leader>q q
+  "noremap <silent> <buffer> q :qal!<cr>
+  "nmap <silent> <buffer> <leader>q q
 
   noremap <silent> <buffer> <leader>* :call <SID>toggle_star()<CR>
   noremap <silent> <buffer> <leader># :call <SID>delete_messages("Deleted")<CR>
@@ -826,11 +826,12 @@ func! s:message_list_window_mappings()
   noremap <silent> <buffer> <Leader>f :call <SID>show_message(0)<cr>:call <SID>compose_forward()<CR><cr>
   noremap <silent> <buffer> <c-j> :call <SID>show_next_message_in_list()<cr>
   noremap <silent> <buffer> <c-k> :call <SID>show_previous_message_in_list()<cr>
-  nnoremap <silent> <buffer> <Space> :call <SID>toggle_maximize_window()<cr>
 endfunc
 
 func! s:compose_window_mappings()
-  noremap <silent> <buffer> <leader>q :call <SID>close_and_focus_list_window()<cr>
+  "noremap <silent> <buffer> <leader>q :call <SID>close_and_focus_list_window()<cr>
+  nnoremap <silent> <buffer> <leader>vs :call <SID>send_message()<CR>
+  nnoremap <silent> <buffer> <c-cr> :call <SID>open_href(0)<cr>
   setlocal ai
   " setlocal textwidth=72
   autocmd CursorMoved <buffer> call <SID>toggle_textwidth()
@@ -839,11 +840,11 @@ endfunc
 func! s:global_mappings()
   " NOTE send_message is a global mapping, so user can load a saved
   " message from a file and send it
-  nnoremap <silent> <leader>vs :call <SID>send_message()<CR>
-  noremap <silent> <leader>o :call <SID>open_href(0)<cr>
-  noremap <silent> <leader>O :call <SID>open_href(1)<cr>
-  noremap <silent> <leader>? :call <SID>show_help()<cr>
-  noremap <silent> <leader>qq :qal!<cr>
+  "nnoremap <silent> <leader>vs :call <SID>send_message()<CR>
+  "noremap <silent> <leader>o :call <SID>open_href(0)<cr>
+  "noremap <silent> <leader>O :call <SID>open_href(1)<cr>
+  "noremap <silent> <leader>? :call <SID>show_help()<cr>
+  "noremap <silent> <leader>qq :qal!<cr>
 endfunc
 
 func! s:update_window_width()
@@ -866,7 +867,7 @@ call s:focus_list_window() " to go list window
 " TODO complete this feature later. Don't release it half-baked
 autocmd VimResized <buffer> call <SID>update_window_width()
 
-autocmd bufreadpost *.txt call <SID>turn_into_compose_window()
+autocmd bufreadpost <buffer> *.txt call <SID>turn_into_compose_window()
 
 call system(s:select_mailbox_command . shellescape(s:mailbox))
 
