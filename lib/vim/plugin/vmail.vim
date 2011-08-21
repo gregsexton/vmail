@@ -41,9 +41,6 @@ fu! s:RunVmail()
 
     exec "e " . buffer_path
     exec "so " . script_path
-
-    "TODO: map a quit autocmd to delete the buffer and close the
-    "connection and clean any environment vars up.
 endfu
 
 fu! s:WaitForBufferToBeWritten(buffer_path)

@@ -9,6 +9,8 @@ let s:append_file     = ''
 
 let s:drb_uri = $DRB_URI
 
+let s:window_width = 0
+
 let s:client_script                = "vmail_client " . shellescape(s:drb_uri) . " "
 let s:set_window_width_command     = s:client_script . "window_width= "
 let s:list_mailboxes_command       = s:client_script . "list_mailboxes "
@@ -69,6 +71,7 @@ function! s:create_message_window()
 endfunction
 
 function! s:show_message(stay_in_message_list)
+  call s:update_window_width()
   let line = getline(line("."))
   if match(line, '^>  Load') != -1
     setlocal modifiable
@@ -843,6 +846,15 @@ func! s:global_mappings()
   noremap <silent> <leader>qq :qal!<cr>
 endfunc
 
+func! s:update_window_width()
+    let width = winwidth(0)
+    if width != s:window_width
+        let s:window_width = width
+        call system(s:set_window_width_command . width)
+        call s:do_search() "bit of a hack really but it kinda works
+    endif
+endfunc
+
 call s:global_mappings()
 
 call s:create_list_window()
@@ -851,14 +863,14 @@ call s:create_message_window()
 
 call s:focus_list_window() " to go list window
 
-" send window width
-call system(s:set_window_width_command . winwidth(1))
-
 " TODO complete this feature later. Don't release it half-baked
-autocmd VimResized <buffer> call system(s:set_window_width_command . winwidth(1))
+autocmd VimResized <buffer> call <SID>update_window_width()
 
 autocmd bufreadpost *.txt call <SID>turn_into_compose_window()
 
 call system(s:select_mailbox_command . shellescape(s:mailbox))
-call s:do_search()
 
+" send window width
+call s:update_window_width()
+
+"call s:do_search()
