@@ -16,12 +16,14 @@ module Vmail
 
     attr_accessor :max_seqno # of current mailbox
 
-    def initialize(config)
+    def initialize(config, forked)
       @username, @password = config['username'], config['password']
       @name = config['name']
       @signature = config['signature']
       @always_cc = config['always_cc']
       @mailbox = nil
+
+      @forked = forked
 
       # Total hack, but ENV['VMAIL_HOME'] isn't always available.
       @vmail_home = File.dirname(config['logfile'])
@@ -346,7 +348,7 @@ module Vmail
       log "- search query got #{@ids.size} results; max seqno: #{self.max_seqno}"
       clear_cached_message
       res = fetch_row_text(fetch_ids)
-      if STDOUT.tty?
+      if STDOUT.tty? or @forked
         add_more_message_line(res, fetch_ids[0])
       else
         # non interactive mode
@@ -836,14 +838,14 @@ EOF
       raise
     end
 
-    def self.start(config)
-      imap_client  = Vmail::ImapClient.new config
+    def self.start(config, forked)
+      imap_client  = Vmail::ImapClient.new config, forked
       imap_client.open
       imap_client
     end
 
-    def self.daemon(config)
-      $gmail = self.start(config)
+    def self.daemon(config, forked)
+      $gmail = self.start(config, forked)
       use_uri = config['drb_uri'] || nil # redundant but explicit
       DRb.start_service(use_uri, $gmail)
       uri = DRb.uri

@@ -58,13 +58,13 @@ module Vmail
         Process.setsid
         raise 'Second fork failed' if (pid = fork) == -1
         exit unless pid.nil?
-        puts "Daemon pid: #{Process.pid}" # Or save it somewhere, etc.
+        puts "Daemon pid: #{Process.pid}"
     end
 
     puts "Starting vmail imap client for #{config['username']}"
 
     drb_uri = begin
-                Vmail::ImapClient.daemon config
+                Vmail::ImapClient.daemon(config, should_fork_daemon)
               rescue
                 puts "Failure:", $!
                 exit(1)
@@ -85,13 +85,16 @@ module Vmail
     # invoke vim
     vimscript = File.expand_path("../vmail.vim", __FILE__)
     vim_command = "DRB_URI=#{drb_uri} VMAIL_CONTACTS_FILE=#{contacts_file} VMAIL_MAILBOX=#{String.shellescape(mailbox)} VMAIL_QUERY=#{String.shellescape(query_string)} #{vim} -S #{vimscript} #{buffer_file}"
-    #STDERR.puts vim_command
-    #STDERR.puts "Using buffer file: #{buffer_file}"
+
     File.open(buffer_file, "w") do |file|
       file.puts "Vmail starting with values:\n"
-      file.puts "- drb uri: #{drb_uri}"
-      file.puts "- mailbox: #{mailbox}"
-      file.puts "- query: #{query_string}\n"
+      file.puts "$VMAIL_MAILBOX='#{String.shellescape(mailbox)}'"
+      file.puts "$VMAIL_QUERY='#{String.shellescape(query_string)}'"
+      file.puts "$DRB_URI='#{drb_uri}'"
+      file.puts "$VMAIL_CONTACTS_FILE='#{contacts_file}'"
+      file.puts "$VMAIL_BROWSER='#{ENV['VMAIL_BROWSER']}'"
+      file.puts "INIT_SCRIPT=#{vimscript}"
+      file.puts ""
       file.puts "Fetching messages. please wait..."
     end
 
