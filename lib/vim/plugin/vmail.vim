@@ -43,7 +43,7 @@ fu! s:RunVmail()
     exec "so " . script_path
 
     "NOTE: if the buffer is closed in any other way the process will not be killed
-    nnoremap <silent> <buffer> q :call system("vmail_client " . shellescape($DRB_URI) . " close_and_exit")<cr>:q<cr>
+    nnoremap <silent> <buffer> q :call system("vmail_client " . shellescape($DRB_URI) . " close_and_exit")<cr>:bwipeout<cr>
 endfu
 
 fu! s:WaitForBufferToBeWritten(buffer_path)
