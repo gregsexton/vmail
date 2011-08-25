@@ -100,14 +100,14 @@ function! s:show_message(stay_in_message_list)
   redrawstatus
   let res = system(command)
   call s:focus_message_window()
-  set modifiable
+  setlocal modifiable
   1,$delete
   put =res
   " critical: don't call execute 'normal \<cr>'
   " call feedkeys("<cr>")
   1delete
   normal 1Gjk
-  set nomodifiable
+  setlocal nomodifiable
   set ft=mail
   if a:stay_in_message_list
     call s:focus_list_window()
