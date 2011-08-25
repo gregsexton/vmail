@@ -46,6 +46,7 @@ function! s:create_list_window()
   "setlocal nomodifiable
   setlocal nowrap
   setlocal nonumber
+  if v:version >= 703 | setlocal norelativenumber | endif
   setlocal foldcolumn=0
   setlocal nospell
   " setlocal nobuflisted
@@ -874,4 +875,5 @@ call system(s:select_mailbox_command . shellescape(s:mailbox))
 " send window width
 call s:update_window_width()
 
+set ft=vmail
 "call s:do_search()

@@ -113,10 +113,6 @@ fu! s:GetBufferPath(output)
 endfu
 
 fu! s:TestForCompatability()
-    if !has('ruby')
-        echoerr "Vim must be compiled with Ruby support to run Vmail."
-        return 0
-    endif
     return 1
 endfu
 
