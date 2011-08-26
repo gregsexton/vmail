@@ -14,7 +14,11 @@ fu! s:OpenVmail(...)
         return
     endif
     vnew
-    call s:RunVmail()
+    if exists("g:vmail_buffer_number")
+        exec "buf " . g:vmail_buffer_number
+    else
+        call s:RunVmail()
+    endif
 endfu
 
 fu! s:RunVmail()
@@ -42,8 +46,13 @@ fu! s:RunVmail()
     exec "e " . buffer_path
     exec "so " . script_path
 
-    "NOTE: if the buffer is closed in any other way the process will not be killed
-    nnoremap <silent> <buffer> q :call system("vmail_client " . shellescape($DRB_URI) . " close_and_exit")<cr>:bwipeout<cr>
+    nnoremap <silent> <buffer> q :q<cr>
+    augroup VmailExtension
+        au! 
+        autocmd VimLeavePre * call <SID>QuitVmail()
+    augroup END
+
+    let g:vmail_buffer_number = bufnr("%")
 endfu
 
 fu! s:WaitForBufferToBeWritten(buffer_path)
@@ -114,6 +123,14 @@ endfu
 
 fu! s:TestForCompatability()
     return 1
+endfu
+
+fu! s:QuitVmail()
+    if exists("g:vmail_buffer_number")
+        exec "bwipeout " . g:vmail_buffer_number
+        call system("vmail_client " . shellescape($DRB_URI) . " close_and_exit")
+        unlet g:vmail_buffer_number
+    endif
 endfu
 
 let &cpo = s:savecpo
