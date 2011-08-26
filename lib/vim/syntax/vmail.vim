@@ -1,6 +1,12 @@
-"TODO: need to add checks for current syntax already applied.
-"TODO: some sort of header with author name, date, email, etc
-"syn match vmailSeperator /^.*|\s\+... \d\d \d\d:\d\d..\s|\s\(.\{-}<\)\?[^ ]\{-}\s\+|.*|\s\+\(<1kb\|\d*\(b\|kb\|mb\|gb\)\)\s\+|/
+" Vim syntax file
+" Language:	Vmail message list
+" Maintainer:	Greg Sexton <gregsexton@gmail.com>
+" Last Change:	2011-08-26
+"
+
+if exists("b:current_syntax")
+    finish
+endif
 
 syn match vmailSizeCol /|\s\+\(<1kb\|\d*\(b\|kb\|mb\|gb\)\)\s\+|/ contains=vmailSeperator contained
 
