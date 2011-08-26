@@ -15,9 +15,8 @@ syn match vmailFirstColAnswered /An/ contained containedin=vmailFirstCol
 syn match vmailFirstColForward /\$F/ contained containedin=vmailFirstCol
 syn match vmailFirstColNotJunk /No/ contained containedin=vmailFirstCol
 
-syn match vmailDateCol /\s\+... \d\d \d\d:\d\d..\s|/ nextgroup=vmailFromCol contains=vmailSeperator
+syn match vmailDateCol /\s\+... \d\d \(\(\d\d:\d\d..\)\|\(\d\{4}\)\)\s\+|/ nextgroup=vmailFromCol contains=vmailSeperator
 
-"TODO: does not handle multiple emails wrapped in <>
 syn match vmailFromCol /\s.\{-}|\@=/ contained nextgroup=vmailFromSeperator
 syn match vmailFromColEmail /<[^ ]*/ contained containedin=vmailFromCol
 syn match vmailFromSeperator /|/ contained nextgroup=vmailSubject
