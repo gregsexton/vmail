@@ -12,12 +12,13 @@ module Vmail
     puts "Starting vmail #{Vmail::VERSION}"
     if  "1.9.0" > RUBY_VERSION
       puts "This version of vmail requires Ruby version 1.9.0 or higher (1.9.2 is recommended)"
-      exit
+      exit(1)
     end
 
     vim = ENV['VMAIL_VIM'] || 'vim'
     vmail_home = ENV['VMAIL_HOME'] || File.join(ENV['HOME'], '.vmail')
     buffer_file = File.expand_path(File.join(vmail_home, "vmailbuffer"))
+    puts "Using buffer: #{buffer_file}"
 
     # Create VMAIL_HOME if it doesn't exist.
     Dir.mkdir(vmail_home, 0700) unless File.exists?(vmail_home)
@@ -43,51 +44,73 @@ module Vmail
     opts.config
     config = opts.config
 
-    contacts_file = opts.contacts_file
+    contacts_file      = opts.contacts_file
+    should_fork_daemon = opts.fork_daemon
 
     logfile = (vim == 'mvim') ? STDERR : "#{vmail_home}/vmail.log"
     config.merge! 'logfile' => logfile
 
+    puts "Using logfile: #{logfile}"
+
+    if should_fork_daemon
+        raise 'Fork failed' if (pid = fork) == -1
+        exit unless pid.nil?
+        Process.setsid
+        raise 'Second fork failed' if (pid = fork) == -1
+        exit unless pid.nil?
+        puts "Daemon pid: #{Process.pid}"
+    end
+
     puts "Starting vmail imap client for #{config['username']}"
 
     drb_uri = begin
-                Vmail::ImapClient.daemon config
+                Vmail::ImapClient.daemon(config, should_fork_daemon)
               rescue
                 puts "Failure:", $!
                 exit(1)
               end
 
+    $gmail.log "drb_uri = #{drb_uri}"
     server = DRbObject.new_with_uri drb_uri
 
     mailbox, query = parse_query
     query_string = Vmail::Query.args2string query
     server.select_mailbox mailbox
 
-    STDERR.puts "Mailbox: #{mailbox}"
-    STDERR.puts "Query: #{query.inspect} => #{query_string}"
+    #STDERR.puts "Mailbox: #{mailbox}"
+    $gmail.log "Mailbox: #{mailbox}"
+    #STDERR.puts "Query: #{query.inspect} => #{query_string}"
+    $gmail.log "Query: #{query.inspect} => #{query_string}"
 
     # invoke vim
     vimscript = File.expand_path("../vmail.vim", __FILE__)
     vim_command = "DRB_URI=#{drb_uri} VMAIL_CONTACTS_FILE=#{contacts_file} VMAIL_MAILBOX=#{String.shellescape(mailbox)} VMAIL_QUERY=#{String.shellescape(query_string)} #{vim} -S #{vimscript} #{buffer_file}"
-    STDERR.puts vim_command
-    STDERR.puts "Using buffer file: #{buffer_file}"
+
     File.open(buffer_file, "w") do |file|
       file.puts "Vmail starting with values:\n"
-      file.puts "- drb uri: #{drb_uri}"
-      file.puts "- mailbox: #{mailbox}"
-      file.puts "- query: #{query_string}\n"
+      file.puts "$VMAIL_MAILBOX='#{String.shellescape(mailbox)}'"
+      file.puts "$VMAIL_QUERY='#{String.shellescape(query_string)}'"
+      file.puts "$DRB_URI='#{drb_uri}'"
+      file.puts "$VMAIL_CONTACTS_FILE='#{contacts_file}'"
+      file.puts "$VMAIL_BROWSER='#{ENV['VMAIL_BROWSER']}'"
+      file.puts "INIT_SCRIPT=#{vimscript}"
+      file.puts ""
       file.puts "Fetching messages. please wait..."
     end
 
-    system(vim_command)
+    if should_fork_daemon
+        $gmail.log "Forked pid=#$$. Leaving connection open."
+    else
+        system(vim_command)
+    end
 
-    if vim == 'mvim'
+    if vim == 'mvim' || should_fork_daemon
       DRb.thread.join
     end
 
     File.delete(buffer_file)
 
-    STDERR.puts "Closing imap connection"
+    #STDERR.puts "Closing imap connection"
     begin
       Timeout::timeout(10) do
         $gmail.close
@@ -96,7 +119,7 @@ module Vmail
       puts "Close connection attempt timed out"
     end
     puts "Bye"
-    exit
+    exit(0)
   end
 
   # non-interactive mode
