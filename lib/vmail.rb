@@ -3,7 +3,7 @@ require 'vmail/options'
 require 'vmail/imap_client'
 require 'vmail/query'
 require 'vmail/message_formatter'
-require 'vmail/reply_template'
+require 'iconv'
 
 module Vmail
   extend self
@@ -13,6 +13,17 @@ module Vmail
     if  "1.9.0" > RUBY_VERSION
       puts "This version of vmail requires Ruby version 1.9.0 or higher (1.9.2 is recommended)"
       exit(1)
+    end
+
+    # check database version
+    print "Checking vmail.db version... "
+    db = Sequel.connect 'sqlite://vmail.db'
+    if (r = db[:version].first) && r[:vmail_version] != Vmail::VERSION
+      print "Vmail database version is outdated. Recreating.\n"
+      `rm vmail.db`
+      `sqlite3 vmail.db < #{CREATE_TABLE_SCRIPT}`
+    else
+      print "OK\n"
     end
 
     vim = ENV['VMAIL_VIM'] || 'vim'
@@ -47,7 +58,7 @@ module Vmail
     contacts_file      = opts.contacts_file
     should_fork_daemon = opts.fork_daemon
 
-    logfile = (vim == 'mvim') ? STDERR : "#{vmail_home}/vmail.log"
+    logfile = (vim == 'mvim' || vim == 'gvim') ? STDERR : "#{vmail_home}/vmail.log"
     config.merge! 'logfile' => logfile
 
     puts "Using logfile: #{logfile}"
@@ -104,7 +115,7 @@ module Vmail
         system(vim_command)
     end
 
-    if vim == 'mvim' || should_fork_daemon
+    if vim == 'mvim' || vim == 'gvim' || should_fork_daemon
       DRb.thread.join
     end
 
@@ -122,57 +133,6 @@ module Vmail
     exit(0)
   end
 
-  # non-interactive mode
-  def noninteractive_list_messages
-    check_lynx
-    opts = Vmail::Options.new(ARGV)
-    opts.config
-    config = opts.config.merge 'logfile' => 'vmail.log'
-    mailbox, query = parse_query
-    query_string = Vmail::Query.args2string query
-    imap_client  = Vmail::ImapClient.new config
-    imap_client.with_open do |vmail|
-      vmail.select_mailbox mailbox
-      vmail.search query_string
-    end
-  end
-
-  # batch processing mode
-  def batch_run
-    check_lynx
-    opts = Vmail::Options.new(ARGV)
-    opts.config
-    config = opts.config.merge 'logfile' => 'vmail.log'
-    # no search query args, but command args
-    imap_client  = Vmail::ImapClient.new config
-    lines = STDIN.readlines# .reverse
-    mailbox = lines.shift.chomp
-    puts "mailbox: #{mailbox}"
-    uid_set = lines.map do |line|
-      line[/(\d+)\s*$/,1].to_i
-    end
-    commands = {
-      'rm' => ["flag", "+FLAGS", "Deleted"],
-      'spam' => ["flag", "+FLAGS", "spam"],
-      'mv' => ["move_to"],
-      'cp' => ["copy_to"],
-      'print' => ["append_to_file"]
-    }
-    args = commands[ARGV.first]
-    if args.nil?
-      abort "Command '#{args.inspect}' not recognized"
-    end
-    command = args.shift
-    imap_client.with_open do |vmail|
-      puts "Selecting mailbox: #{mailbox}"
-      vmail.select_mailbox mailbox
-      uid_set.each_slice(5) do |uid_set|
-        params = [uid_set.join(',')] + args + ARGV[1..-1]
-        puts "Executing: #{command} #{params.join(' ')}"
-        vmail.send command, *params
-      end
-    end
-  end
 
   private
 
@@ -185,12 +145,15 @@ module Vmail
   end
 
   def parse_query
-    mailbox = if ARGV[0] =~ /^\d+/
-                "INBOX"
-              else
-                ARGV.shift || 'INBOX'
-              end
+    if ARGV[0] =~ /^\d+/ 
+      ARGV.shift
+    end
+    mailbox = ARGV.shift || 'INBOX' 
     query = Vmail::Query.parse(ARGV)
     [mailbox, query]
   end
+end
+
+if __FILE__ == $0
+  Vmail.start
 end

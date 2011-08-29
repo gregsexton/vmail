@@ -14,6 +14,7 @@ than in any web browser or GUI program.
 * a Gmail account
 * a relatively recent version of Vim (Vmail is developed against Vim 7.3)
 * Ruby 1.9.0 or higher with SSL support compiled in (Vmail is developed using Ruby 1.9.2)
+* `libsqlite3-dev` and `sqlite3` (try installing with `apt-get`, `brew`, `yum`, `emerge`, etc.)
 * the `lynx` text-only-mode web browser is required to view HTML mail parts in Vmail
 
 To install Ruby 1.9.2, I recommend using the [RVM Version Manager][rvm].
@@ -88,6 +89,9 @@ You can also add an `always_cc:` key-value pair. This will pre-insert
 whatever email address you specify in the `cc:` line of any email you
 start composing in Vmail.
 
+The same applies to `always_bcc:`.
+
+
 If you want to configure Vmail with multiple Gmail accounts, [here's how][multiaccount].
 
 [multiaccount]:https://github.com/danchoi/vmail/wiki/How-to-use-vmail-with-multiple-Gmail-accounts
@@ -129,16 +133,6 @@ You can also pass in search parameters after specifying the mailbox:
 
     vmail important from barackobama@whitehouse.gov
 
-On startup, Vmail loads 100 messages by default. You can increase or decrease
-this number by passing in a number after the mailbox name:
-
-    vmail inbox 700 subject unix
-
-Passing in 0 as the number of messages returns all messages that match
-the query:
-
-    vmail inbox 0 subject unix # => returns all matching messages
-
 ## Viewing messages
 
 The first screen Vmail shows you is a list of messages. You can view a message
@@ -166,13 +160,13 @@ You can use `<C-k>` or `,k` to show the previous message.
 
 Vmail loads a certain number messages at a time, starting with the most recent.
 If there are more messages that Vmail hasn't loaded, you'll see a line at the
-top of the list that looks something like this:
+bottom of the list that looks something like this:
 
     > Load 100 more messages. 156 remaining.
 
 Put the cursor on this line and press ENTER to load more of these messages.
 
-Tip: To go straight to the top line and load more messages, type `gg<ENTER>`.
+Tip: To go straight to the bottom line and load more messages, type `G<ENTER>`.
 
 Unread messages are marked with a `+` symbol.
 
@@ -312,7 +306,7 @@ The current version of Vmail can handle attachments to a certain extent.
 When you're viewing a message with attachments, you'll see something like this
 at the top of the message window:
 
-    INBOX 2113 4 kb
+    <4vlj45.29529.zoe2@instantwatcher.com> 1kb Seen
     - image/png; name=canada.png
     - image/gif; name=arrow_right.gif
     ---------------------------------------
@@ -321,7 +315,7 @@ at the top of the message window:
     to: Daniel Choi <dhchoi@gmail.com>
     subject: attachment test
 
-    see attached
+    Hi Dan, please see attached
 
 To download these attachments to a local directory, type `,A`. You'll be
 prompted for a directory path.  Then Vmail will save all the attachments in the
@@ -333,19 +327,25 @@ composition window:
     from: Daniel Choi <dhchoi@gmail.com>
     to: barackobama@whitehouse.gov
     subject: look at this!
-
-    attach:
-    - images/middle-east-map.png
-    - images/policypaper.pdf
-    - docs/
-
+    
+    attach: images/middle-east-map.png
+    attach: images/policypaper.pdf
+    attach: docs/
+    
     I think you'll find this stuff interesting.
-
-
-The `attach:` block is a YAML list. The items are paths (either relative to the
+    
+The items following the `attach:` directives are paths (either relative to the
 current directory or absolute) to the files you want to attach to your message.
 Note that you can also specify a directory, in which case Vmail attaches every
-file it finds in that directory.
+file it finds in that directory. Make sure that you 
+
+* keep the `attach:` lines contiguous (no intervening empty lines) if you want to add multiple attachments
+* insert an empty line before the attachments section
+* insert an empty after the attachments section
+
+You don't have to type the `attach:` directives manually. You can use the 
+command `:VMAttach [filename-or-path]` to insert an `attach:` directive with
+the help of file auto-completion.
 
 One thing Vmail doesn't do yet is let you forward a message with all its
 attachments intact.  This feature will be implemented in the near future. 
@@ -383,13 +383,12 @@ split window.
 
 Vmail can generate a message list by performing an IMAP search on the current mailbox.
 From the message list window, type `,s`. This will prompt you for a search query. 
-The search query is an optional number specifying the number of messages to return, 
-followed by a valid IMAP search query.
+The search query should be a valid IMAP search query.
 
 Here are some example search queries.
 
-    # the default
-    100 all
+    # the default 
+    all  
 
     # all messages from thematrix.com domain
     from thematrix.com
@@ -426,59 +425,33 @@ any line in this mini-editor and press ENTER to perform the query on that line.
 
 ## Command-line mode and batch processing
 
-You can invoke Vmail in non-interactive command-line mode. This is very
-useful for batch processing and for using Vmail in Unix pipelines and
-automated scripts.
+Note: These features have been deprecated and will be migrated to a separate tool.
 
-If you redirect Vmail's output from STDOUT to a file or a program, Vmail will
-output the message list resulting from a search query to a file.
-
-    vmail inbox 100 from monit > message-list.txt 
-
-You can open this file in any text editor to make sure that the search
-query produced the expected result. Then you can perform the following
-batch operations on the message list:
-
-    # deletes all the messages in the message list
-    vmail rm < message-list.txt
-
-    # marks all the messages in the message list as spam
-    vmail spam < message-list.txt
-
-    # moves all the messages in the message list to the 'monit' mailbox
-    vmail mv monit < message-list.txt
-
-    # copies all the messages in the message list to the 'monit' mailbox
-    vmail cp monit < message-list.txt
-
-    # appends the text content of all the messages in the message list to messages.txt
-    vmail print messages.txt < message-list.txt
-
-Non-interactive mode assumes that `.vmailrc` contains your Gmail password.
 
 ## Getting help
 
 Typing `,?` will open this webpage in a browser.
 
-## Using Vmail with MacVim
+## Using Vmail with MacVim or gvim
 
-To use MacVim as your Vmail Vim engine, `export VMAIL_VIM=mvim` before starting
-Vmail or put this command in your `~/.bash_profile`.
+To use MacVim as your Vmail Vim engine, run `export VMAIL_VIM=mvim` or `export
+VMAIL_VIM=gvim` before starting Vmail.  Or put this command in your
+`~/.bash_profile`.
 
-Note that when Vmail uses MacVim, the terminal window in which you invoke Vmail
-will show Vmail's logging output while MacVim is running. To quit Vmail in
-MacVim mode, first quit the MacVim window running Vmail, and then press CTRL-c
-in the original terminal window to stop the Vmail process.
+Note that when Vmail uses MacVim or gvim, the terminal window in which you
+invoke Vmail will show Vmail's logging output while MacVim is running. To quit
+Vmail, first quit the MacVim window running Vmail, and then press CTRL-c in the
+original terminal window to stop the Vmail process.
 
 ## Vmail file byproducts
 
 Vmail generates a few files in `VMAIL_HOME` when it is running:
 
+* `vmail.db` is a sqlite3 database. Vmail uses this to cache messages it has seen..
+
 * `vmailbuffer` holds the message list. This file should get deleted automatically when Vmail quits.
 
 * `current_message.txt` holds the current message being shown. Not deleted on quit.
-
-* `sent-messages.txt` will contain copies of any messages you send from Vmail
 
 * `part.html` is created if you open an HTML mail part from Vmail. 
 
@@ -547,10 +520,7 @@ Vmail users, please add them to the [vmail wiki][wiki].
 
 My name is Daniel Choi. I am based in Cambridge, Massachusetts, USA, and you
 can email me at dhchoi@gmail.com.  You can [follow me on Twitter][twitter] too.
-A big shout out goes to my funny, smart, and supportive fellow hacker alums of
-[Betahouse][betahouse].
 
-[betahouse]:http://betahouse.org/
 
 [twitter]:http://twitter.com/#!/danchoi
 
