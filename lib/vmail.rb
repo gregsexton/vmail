@@ -106,7 +106,7 @@ module Vmail
       file.puts "$VMAIL_BROWSER='#{ENV['VMAIL_BROWSER']}'"
       file.puts "INIT_SCRIPT=#{vimscript}"
       file.puts ""
-      file.puts "Fetching messages. please wait..."
+      file.puts "Fetching messages. Please wait..."
     end
 
     if should_fork_daemon

@@ -8,7 +8,7 @@ if exists("b:current_syntax")
     finish
 endif
 
-syn match vmailSizeCol /|\s\+\(<1kb\|\d*\(b\|kb\|mb\|gb\)\)\s\+|/ contains=vmailSeperator contained
+syn match vmailSizeCol /|\s\+\(< 1k\|\d*\(b\|k\|M\|G\)\)\s\+|/ contains=vmailSeperator contained
 
 syn match vmailFirstCol /^.\{-}|/ nextgroup=vmailDateCol
 syn match vmailFirstColAnswered /An/ contained containedin=vmailFirstCol
