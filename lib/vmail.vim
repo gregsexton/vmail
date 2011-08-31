@@ -580,8 +580,11 @@ func! s:open_compose_window(command)
   echo a:command
   let res = system(a:command)
   let previous_winnr = winnr()
-  "only
-  split compose_message.txt
+  if isdirectory(glob("$HOME/.vmail"))
+      split $HOME/.vmail/compose_message.txt
+  else
+      split compose_message.txt
+  endif
   setlocal modifiable
   wincmd p
   close!

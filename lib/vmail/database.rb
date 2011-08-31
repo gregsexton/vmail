@@ -2,11 +2,13 @@ require 'sequel'
 
 CREATE_TABLE_SCRIPT = File.expand_path("../../../db/create.sql", __FILE__)
 
-if !File.size?('vmail.db')
-  puts `sqlite3 vmail.db < #{CREATE_TABLE_SCRIPT}`
+vmail_home = ENV['VMAIL_HOME'] || File.join(ENV['HOME'], '.vmail')
+vmail_db   = File.join(vmail_home, 'vmail.db')
+if !File.size?(vmail_db)
+  puts `sqlite3 #{vmail_db} < #{CREATE_TABLE_SCRIPT}`
 end
 
-DB = Sequel.connect 'sqlite://vmail.db'
+DB = Sequel.connect "sqlite://#{vmail_db}"
 
 if DB[:version].count == 0
   DB[:version].insert(:vmail_version => Vmail::VERSION)

@@ -15,19 +15,21 @@ module Vmail
       exit(1)
     end
 
+    vmail_home = ENV['VMAIL_HOME'] || File.join(ENV['HOME'], '.vmail')
+    vmail_db   = File.join(vmail_home, 'vmail.db')
+
     # check database version
     print "Checking vmail.db version... "
-    db = Sequel.connect 'sqlite://vmail.db'
+    db = Sequel.connect "sqlite://#{vmail_db}"
     if (r = db[:version].first) && r[:vmail_version] != Vmail::VERSION
       print "Vmail database version is outdated. Recreating.\n"
-      `rm vmail.db`
-      `sqlite3 vmail.db < #{CREATE_TABLE_SCRIPT}`
+      `rm #{vmail_db}`
+      `sqlite3 #{vmail_db} < #{CREATE_TABLE_SCRIPT}`
     else
       print "OK\n"
     end
 
     vim = ENV['VMAIL_VIM'] || 'vim'
-    vmail_home = ENV['VMAIL_HOME'] || File.join(ENV['HOME'], '.vmail')
     buffer_file = File.expand_path(File.join(vmail_home, "vmailbuffer"))
     puts "Using buffer: #{buffer_file}"
 
