@@ -7,6 +7,7 @@ let s:savecpo = &cpo
 set cpo&vim
 
 command! -nargs=* Vmail call s:OpenVmail(shellescape(<q-args>))
+command! VmailForceQuit call s:QuitVmail()
 
 fu! s:OpenVmail(...)
     "do nothing with the args for the moment.
