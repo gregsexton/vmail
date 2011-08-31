@@ -22,7 +22,7 @@ syn match vmailFromColEmail /<[^ ]*/ contained containedin=vmailFromCol
 syn match vmailFromSeperator /|/ contained nextgroup=vmailSubject
 
 syn match vmailSubject /.*\s\+/ contained contains=vmailSizeCol
-syn match vmailSubjectRe /\cre:\|fwd:/ contained containedin=vmailSubject
+syn match vmailSubjectRe /\cre:\|fwd\?:/ contained containedin=vmailSubject
 
 syn match vmailSeperator /|/ contained
 
