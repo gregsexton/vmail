@@ -190,15 +190,7 @@ function! s:focus_list_window()
   else
     exec winnr . "wincmd w"
   endif
-  " set up syntax highlighting
-  if has("syntax")
-    syn clear
-    " colorize whole line
-    syn match VmailBufferFlagged /^*.*/hs=s
-    exec "hi def VmailBufferFlagged " . g:vmail_flagged_color
-    let s:syntax_coloring_set = 1
-  endif
-  "
+
   " call feedkeys("\<c-l>") " prevents screen artifacts when user presses return too fast
   " turn this off though, because it causes an annoying flash
 endfunction
